@@ -12,7 +12,6 @@ class GetProductSpider(scrapy.Spider):
         "Accept-Language": "en-US,en;q=0.9,bn;q=0.8",
         "Connection": "keep-alive",
         "Cookie": "_gid=GA1.3.1779123551.1719922839; sessionId=0.8450054639742934; _hjSession_3630004=eyJpZCI6IjMwNmEwMGI4LWE1MGUtNGU5Ni1hN2ZjLTVmZmIzMjBmYjQwOCIsImMiOjE3MTk5MjI4NDg4MjYsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjoxLCJzcCI6MH0=; _hjSessionUser_3630004=eyJpZCI6Ijc2MWIwYmEwLWIxNmMtNWMxNi04MDM0LWQyODUzMTk3ODc1NiIsImNyZWF0ZWQiOjE3MTk5MjI4NDg4MjUsImV4aXN0aW5nIjp0cnVlfQ==; TS01c76045=011ba495a544bbaf21de291a67724c90768b288bd0a859dd53e1fb116142afdc062295dc20ad16d441749b817bb02a7223fb2f94d6; site24x7rumID=64369725234124.1719925271174.1719925330603; _gat_UA-141667814-1=1; _ga_EVT41FKR71=GS1.1.1719922838.1.1.1719925432.0.0.0; _ga_MT7LWM2FM2=GS1.1.1719922838.1.1.1719925432.0.0.0; _ga=GA1.3.581871748.1719922838; _gat_gtag_UA_141667814_1=1",
-        "Referer": "https://www.sfda.gov.sa/en/medical-equipment-list?productName=&classificationId=&categoryId=&manufacturerName=&productNumber=&permissionNumber=&type=MDMATFA&pg=3",
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
@@ -24,27 +23,27 @@ class GetProductSpider(scrapy.Spider):
     def retry(self, querystring):
         page_number = querystring.get('page')
         p_type = querystring.get('type')
-        querystring = {"type":p_type,"page":page_number}
-        url = f'https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php?type=MDMATFA&page={page_number}'
         with open('faild.txt', 'a') as f:
             f.write(f'{page_number}, {p_type}\n')
-        # url = "https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php"
-        scrapy.Request(url, headers=self.headers, meta=querystring, callback=self.parse)
     
     def start_requests(self):
-        for i in range(1,101):
-            querystring = {"type":"MDMATFA","page":i}
-            url = f'https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php?type=MDMATFA&page={i}'
+        p_type = 'MDMAGHTF'
+        with open('faild.txt', 'r') as f:
+            lines = f.readlines()
+            
+        for i in range(1001,3001):
+            querystring = {"type":p_type,"page":i}
+            url = f'https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php?type={p_type}&page={i}'
             # url = "https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php"
             yield scrapy.Request(url, headers=self.headers, meta=querystring)
     
     def parse(self, response):
         data = json.loads(response.text)['data']['ghtfTfaProductObjects']
         page_number = response.meta.get('page')
+        p_type = response.meta.get('type')
         if len(data) == 0:
             print(f'No data found for page {response.meta.get("page")}')
-            querystring = {"type":"MDMATFA","page":page_number}
-            url = f'https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php?type=MDMATFA&page={page_number}'
+            querystring = {"type":p_type,"page":page_number}
             return self.retry(querystring)
             
         else:
@@ -69,10 +68,12 @@ class GetProductSpider(scrapy.Spider):
             manufacturer_name = d.get('manufacturerName','')
             # model_number = d['modelNumber']
             status = d['status']
-            product_type = response.meta.get('type')
             device_accessories = d.get('deviceAccessories')
             device_accessories_trade_name = ' ,'.join([da['tradeName'] for da in device_accessories])
-            device_accessories_description = ' ,'.join([da['description'] for da in device_accessories])
+            try:
+                device_accessories_description = ' ,'.join([da['description'] for da in device_accessories])
+            except:
+                device_accessories_description = ''
             device_accessories_gmdn = ', '.join([da['gmdn'] for da in device_accessories])
             
             if mdi_number is None:
@@ -104,7 +105,7 @@ class GetProductSpider(scrapy.Spider):
             product['manufacturer_name'] = manufacturer_name
             # product['model_number'] = model_number
             product['status'] = status
-            product['product_type'] = product_type
+            product['product_type'] = p_type
             product['device_accessories_trade_name'] = device_accessories_trade_name
             product['device_accessories_description'] = device_accessories_description
             product['device_accessories_gmdn'] = device_accessories_gmdn
