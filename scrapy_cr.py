@@ -23,7 +23,7 @@ class GetProductSpider(scrapy.Spider):
     def retry(self, querystring):
         page_number = querystring.get('page')
         p_type = querystring.get('type')
-        with open('faild.txt', 'a') as f:
+        with open('new_faild.txt', 'a') as f:
             f.write(f'{page_number}, {p_type}\n')
     
     def start_requests(self):
@@ -31,7 +31,9 @@ class GetProductSpider(scrapy.Spider):
         with open('faild.txt', 'r') as f:
             lines = f.readlines()
             
-        for i in range(1001,3001):
+        for line in lines:
+            i = line.strip()
+        # for i in range(12156,12331):
             querystring = {"type":p_type,"page":i}
             url = f'https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php?type={p_type}&page={i}'
             # url = "https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php"
@@ -66,7 +68,7 @@ class GetProductSpider(scrapy.Spider):
             expire_date = d.get('expiryDate','')
             mdi_number = d.get('manufacturerDeviceIdentifierNumber','')
             manufacturer_name = d.get('manufacturerName','')
-            # model_number = d['modelNumber']
+            model_number = d['modelNumber']
             status = d['status']
             device_accessories = d.get('deviceAccessories')
             device_accessories_trade_name = ' ,'.join([da['tradeName'] for da in device_accessories])
@@ -98,12 +100,11 @@ class GetProductSpider(scrapy.Spider):
             product['category'] = category
             product['classification'] = classification
             product['gmdn'] = gmdn
-            product['manufacturer_name'] = manufacturer_name
             product['authorized_representative'] = authorized_representative
             product['expire_date'] = expire_date
             product['mdi_number'] = mdi_number
             product['manufacturer_name'] = manufacturer_name
-            # product['model_number'] = model_number
+            product['model_number'] = model_number
             product['status'] = status
             product['product_type'] = p_type
             product['device_accessories_trade_name'] = device_accessories_trade_name
@@ -116,11 +117,15 @@ class GetProductSpider(scrapy.Spider):
     
 
 
-process = CrawlerProcess(settings={
-    'LOG_LEVEL':'WARNING',
-    'FEED_FORMAT': 'csv',
-    'FEED_URI': 'products.csv',
-})
+process = CrawlerProcess(
+    settings={
+        "FEEDS": {
+            "products.csv": {"format": "csv"},
+        },
+        "LOG_LEVEL": "WARNING",  # You can set the log level to "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL"
+        "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
+    }
+)
 
 process.crawl(GetProductSpider)
 process.start()
