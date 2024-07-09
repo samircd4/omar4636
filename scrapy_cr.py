@@ -23,20 +23,24 @@ class GetProductSpider(scrapy.Spider):
     def retry(self, querystring):
         page_number = querystring.get('page')
         p_type = querystring.get('type')
-        with open('new_faild.txt', 'a') as f:
+        with open('faild.txt', 'a') as f: # Rename the faild.txt file when you run for faild.txt file
             f.write(f'{page_number}, {p_type}\n')
     
     def start_requests(self):
         p_type = 'MDMAGHTF'
-        with open('faild.txt', 'r') as f:
-            lines = f.readlines()
+        
+        # Comment out the line number from 33 to 37
+        # with open('faild.txt', 'r') as f:
+        #     lines = f.readlines()
             
-        for line in lines:
-            i = line.strip()
-        # for i in range(12156,12331):
+        # for line in lines:
+        #     i = line.split(',')[0]
+        
+        # Comment this line number 40
+        for i in range(1,10001):
             querystring = {"type":p_type,"page":i}
+            # url = "https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php" API endpoints
             url = f'https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php?type={p_type}&page={i}'
-            # url = "https://www.sfda.gov.sa/GetMedicalEquipmentsSearch2.php"
             yield scrapy.Request(url, headers=self.headers, meta=querystring)
     
     def parse(self, response):
@@ -85,10 +89,13 @@ class GetProductSpider(scrapy.Spider):
             else:
                 mdi_number = mdi_number.replace('\n', ' ')
             
-            # if model_number is None:
-            #     model_number = ''
-            # else:
-            #     model_number = model_number.replace('\n', ',')
+            if model_number is None:
+                model_number = ''
+            elif len(model_number) >10000:
+                model_number = 'Too Big'
+            else:
+                model_number = model_number.replace('\n', ' ')
+            
             
             product['page_number'] = response.meta.get('page')
             product['product_id'] = product_id
