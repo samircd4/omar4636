@@ -11,11 +11,11 @@ This document is built on [Dr. Python](https://projects-docs.netlify.app/docs/in
 First, clone the repository to your local machine:
 
 ```sh
-git clone https://github.com/samircd4/new_from_cli_test.git
+git clone https://github.com/samircd4/omar4636.git
 ```
 
 ```sh
-cd new_from_cli_test
+cd omar4636
 ```
 
 ### installing-dependencies
@@ -35,9 +35,9 @@ To run the `scrapy_cr.py` script, follow these steps:
 
 2. **Run the `scrapy_cr.py` script**:
 
-    ```sh
-    python scrapy_cr.py
-    ```
+```sh
+python scrapy_cr.py
+```
 
 This command will execute the `scrapy_cr.py` script. Make sure you are in the correct directory where `scrapy_cr.py` is located before running the command.
 
